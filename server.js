@@ -9,7 +9,7 @@ const path = require("path");
 require("dotenv").config();
 const jwt = require("jsonwebtoken");
 const { JWT_SECRET = "neverTell" } = process.env;
-const api_pass = process.env.API_PASS;
+// const api_pass = process.env.API_PASS;
 // const uuidv4 = require("uuid").v4;
 // const upload = require("./routes/upload");
 app.enable("trust proxy");
@@ -62,7 +62,7 @@ app.post("/createPost", async (req, res) => {
 });
 
 app.post("/addstep", async (req, res) => {
-  if (req.body.api_pass === api_pass) {
+  if (req.body.api_pass === process.env.API_PASS) {
     try {
       let new_step = {
         step: req.body.step,
@@ -99,7 +99,7 @@ app.post("/addstep", async (req, res) => {
 // });
 
 app.post("/allPublishedGuides", async (req, res) => {
-  if (req.body.api_pass === api_pass) {
+  if (req.body.api_pass === process.env.API_PASS) {
     try {
       const allPublishedBlogs = await Post.find({
         published: true,
@@ -123,7 +123,7 @@ app.post("/allPublishedGuides", async (req, res) => {
 });
 
 app.post("/getFeaturedGuides", async (req, res) => {
-  if (req.body.api_pass === api_pass) {
+  if (req.body.api_pass === process.env.API_PASS) {
     try {
       const filter = { published: true, approved: true, featured: true };
       const featuredGuides = await Post.find(filter);
@@ -138,7 +138,7 @@ app.post("/getFeaturedGuides", async (req, res) => {
 });
 
 app.post("/featureGuide", async (req, res) => {
-  if (req.body.api_pass === api_pass) {
+  if (req.body.api_pass === process.env.API_PASS) {
     try {
       const filter = { _id: req.body._id };
       const update = { featured: true };
@@ -154,7 +154,7 @@ app.post("/featureGuide", async (req, res) => {
 });
 
 app.post("/publishGuide", async (req, res) => {
-  if (req.body.api_pass === api_pass) {
+  if (req.body.api_pass === process.env.API_PASS) {
     let filter = { _id: req.body._id };
     let update = { published: true };
     try {
@@ -176,7 +176,7 @@ app.post("/publishGuide", async (req, res) => {
 });
 
 app.post("/unpublishGuide", async (req, res) => {
-  if (req.body.api_pass === api_pass) {
+  if (req.body.api_pass === process.env.API_PASS) {
     let filter = { _id: req.body._id };
     let update = { published: false };
     try {
@@ -200,7 +200,7 @@ app.post("/unpublishGuide", async (req, res) => {
 });
 
 app.post("/getBlogById", async (req, res) => {
-  if (req.body.api_pass === api_pass) {
+  if (req.body.api_pass === process.env.API_PASS) {
     try {
       let filter = { _id: req.body._id };
       // console.log("this is req.body._id:", req.body._id);
@@ -220,7 +220,7 @@ app.post("/getBlogById", async (req, res) => {
 });
 
 app.post("/getGuidesByAuthor", async (req, res) => {
-  if (req.body.api_pass === api_pass) {
+  if (req.body.api_pass === process.env.API_PASS) {
     try {
       let filter = { author: req.body.author };
       // console.log("this is req.body.author:", req.body.author);
@@ -240,7 +240,7 @@ app.post("/getGuidesByAuthor", async (req, res) => {
 });
 
 app.post("/updateDescription", async (req, res) => {
-  if (req.body.api_pass === api_pass) {
+  if (req.body.api_pass === process.env.API_PASS) {
     try {
       const { id, description } = req.body;
       const filter = { _id: id };
@@ -262,7 +262,7 @@ app.post("/updateDescription", async (req, res) => {
 });
 
 app.post("/updateStep", async (req, res) => {
-  if (req.body.api_pass === api_pass) {
+  if (req.body.api_pass === process.env.API_PASS) {
     try {
       const { id, index, newStepData } = req.body;
       let filter = { _id: id };
@@ -287,7 +287,7 @@ app.post("/updateStep", async (req, res) => {
 });
 
 app.post("/deleteStep", async (req, res) => {
-  if (req.body.api_pass === api_pass) {
+  if (req.body.api_pass === process.env.API_PASS) {
     try {
       const { _id, index } = req.body;
       let filter = { _id: _id };
@@ -309,7 +309,7 @@ app.post("/deleteStep", async (req, res) => {
 });
 
 app.post(`${process.env.REMOVE_GUIDE_ENDPOINT}`, async (req, res) => {
-  if (req.body.api_pass === api_pass) {
+  if (req.body.api_pass === process.env.API_PASS) {
     try {
       const filter = { _id: req.body._id };
       const deleted_guide = await Post.findOneAndDelete(filter, {
@@ -324,7 +324,7 @@ app.post(`${process.env.REMOVE_GUIDE_ENDPOINT}`, async (req, res) => {
 });
 
 app.post("/getGuidesBySearch", async (req, res) => {
-  if (req.body.api_pass === api_pass) {
+  if (req.body.api_pass === process.env.API_PASS) {
     try {
       // searched guides pop up even when unpublshed or unapproved
       let allFoundGuides = [];
@@ -387,8 +387,8 @@ app.post("/getGuidesBySearch", async (req, res) => {
   }
 });
 
-app.get("/getPublishedUnapprovedGuides", async (req, res) => {
-  if (req.body.api_pass === api_pass) {
+app.post("/getPublishedUnapprovedGuides", async (req, res) => {
+  if (req.body.api_pass === process.env.API_PASS) {
     try {
       const filter = { approved: false, published: true };
       const guides = await Post.find(filter);
@@ -412,24 +412,26 @@ app.get("/getPublishedUnapprovedGuides", async (req, res) => {
 });
 
 app.post("/approveGuide", async (req, res) => {
-  try {
-    let filter = { _id: req.body._id };
-    let update = { approved: true };
-    const updatedGuide = await Post.findOneAndUpdate(filter, update, {
-      new: true,
-    });
-    res
-      .status(200)
-      .json({ message: "successfully updated guide.", updatedGuide });
-  } catch (error) {
-    res.status(500).json({ message: "error on /approveGuide" });
+  if (req.body.api_pass === process.env.API_PASS) {
+    try {
+      let filter = { _id: req.body._id };
+      let update = { approved: true };
+      const updatedGuide = await Post.findOneAndUpdate(filter, update, {
+        new: true,
+      });
+      res
+        .status(200)
+        .json({ message: "successfully updated guide.", updatedGuide });
+    } catch (error) {
+      res.status(500).json({ message: "error on /approveGuide" });
+    }
   }
 });
 
 ///////////////USER DB//////////////////////////////////////////////////////////////////////////////////////////
 app.post("/Register", async (req, res) => {
   let fail = "fail";
-  if (req.body.api_pass === api_pass) {
+  if (req.body.api_pass === process.env.API_PASS) {
     try {
       const { username, password } = req.body;
       // console.log("this is req.body", req.body);
@@ -491,21 +493,22 @@ app.post("/Login", async (req, res) => {
 });
 
 app.post("/getUserIDByUsername", async (req, res) => {
-  try {
-    const { username } = req.body;
-    const user = await User.findOne({ username });
-    if (user) {
-      res
-        .status(200)
-        .json({ message: "getUserIDByUsername successful.", user });
+  if (req.body.api_pass === process.env.API_PASS) {
+    try {
+      const { username } = req.body;
+      const user = await User.findOne({ username });
+      if (user) {
+        res
+          .status(200)
+          .json({ message: "getUserIDByUsername successful.", user });
+      }
+    } catch (error) {
+      res.status(500).json({ message: "getUserIDByUsername failed." });
     }
-  } catch (error) {
-    res.status(500).json({ message: "getUserIDByUsername failed." });
   }
 });
 
 app.post("/getUserByID", async (req, res) => {
-  console.log(process.env.API_PASS);
   if (req.body.api_pass !== process.env.API_PASS) {
     return;
   } else {
