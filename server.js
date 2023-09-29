@@ -512,7 +512,7 @@ app.post("/getUserByUsername", async (req, res) => {
   if (req.body.api_pass === process.env.API_PASS) {
     try {
       const filter = { username: req.body.username };
-      const user = await User.findOne({ filter });
+      const user = await User.findOne(filter);
       res.status(500).json({ message: "/getUserByUsername successful.", user });
     } catch (error) {
       res
