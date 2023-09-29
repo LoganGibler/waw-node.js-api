@@ -508,13 +508,27 @@ app.post("/getUserIDByUsername", async (req, res) => {
   }
 });
 
+app.post("/getUserByUsername", async (req, res) => {
+  if (req.body.api_pass === process.env.API_PASS) {
+    try {
+      const filter = { username: req.body.username };
+      const user = await User.findOne({ filter });
+      res.status(500).json({ message: "/getUserByUsername successful.", user });
+    } catch (error) {
+      res
+        .status(500)
+        .json({ message: "getUserByUsername request has failed." });
+    }
+  }
+});
+
 app.post("/getUserByID", async (req, res) => {
   if (req.body.api_pass !== process.env.API_PASS) {
     return;
   } else {
     try {
       let filter = { _id: req.body._id };
-      console.log("this is filter", filter);
+      // console.log("this is filter", filter);
       let user = await User.findOne(filter);
       // console.log(user.username);
       if (user.username) {
