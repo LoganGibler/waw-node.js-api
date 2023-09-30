@@ -428,6 +428,22 @@ app.post("/approveGuide", async (req, res) => {
   }
 });
 
+app.post("/rejectGuide", async (req, res) => {
+  try {
+    if (req.body.api_pass === process.env.API_PASS) {
+      const filter = { _id: req.body._id };
+      const update = { published: false };
+      const guide = await Post.updateOne(filter, update, {
+        new: true,
+      });
+
+      res.status(200).json({ message: "/rejectGuide successful."});
+    }
+  } catch (error) {
+    res.status(500).json({ message: "/reject guide has failed" });
+  }
+});
+
 ///////////////USER DB//////////////////////////////////////////////////////////////////////////////////////////
 app.post("/Register", async (req, res) => {
   let fail = "fail";
