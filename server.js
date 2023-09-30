@@ -178,7 +178,7 @@ app.post("/publishGuide", async (req, res) => {
 app.post("/unpublishGuide", async (req, res) => {
   if (req.body.api_pass === process.env.API_PASS) {
     let filter = { _id: req.body._id };
-    let update = { published: false };
+    let update = { published: false, approved: false };
     try {
       const updatedPost = await Post.findOneAndUpdate(filter, update, {
         new: true,
@@ -437,7 +437,7 @@ app.post("/rejectGuide", async (req, res) => {
         new: true,
       });
 
-      res.status(200).json({ message: "/rejectGuide successful."});
+      res.status(200).json({ message: "/rejectGuide successful." });
     }
   } catch (error) {
     res.status(500).json({ message: "/reject guide has failed" });
