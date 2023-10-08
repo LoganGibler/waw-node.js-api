@@ -11,7 +11,7 @@ const { JWT_SECRET = "neverTell" } = process.env;
 app.enable("trust proxy");
 app.use(morgan("dev"));
 app.use(express.json());
-aapp.use(cors({ origin : '*'}))
+app.use(cors({ origin : '*'}))
 
 const env = "QA";
 
