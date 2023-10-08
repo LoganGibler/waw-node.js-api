@@ -11,7 +11,7 @@ const { JWT_SECRET = "neverTell" } = process.env;
 app.enable("trust proxy");
 app.use(morgan("dev"));
 app.use(express.json());
-app.use(cors());
+aapp.use(cors({ origin : '*'}))
 
 const env = "QA";
 
@@ -271,7 +271,7 @@ app.post("/updateStep", async (req, res) => {
       } else {
         res
           .status(200)
-          .json({ message: "/updateStep was successful", updatedStep });
+          .json({ message: "/updateStep was successful"});
       }
     } catch (error) {
       res.status(500).json({ message: "/updateStep failed on DB." });
