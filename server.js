@@ -8,7 +8,7 @@ const path = require("path");
 // const Grid = require("gridfs-stream");
 require("dotenv").config();
 const jwt = require("jsonwebtoken");
-const { JWT_SECRET = "neverTell" } = process.env;
+
 // const api_pass = process.env.API_PASS;
 // const uuidv4 = require("uuid").v4;
 // const upload = require("./routes/upload");
@@ -17,7 +17,7 @@ app.use(morgan("dev"));
 app.use(express.json());
 app.use(cors());
 
-const env = "QA";
+const env = "main";
 
 if (env === "main") {
   var BASE = process.env.MONGO_URI_MAIN;
@@ -45,16 +45,43 @@ app.use(express.static(path.join(__dirname, "build")));
 app.get("/", function (req, res) {
   res.sendFile(path.join(__dirname, "build", "index.html"));
 });
-// should add date created
+
+// token verification
+async function verifyJWT(token, username) {
+  let status = false;
+  try {
+    if (!token) {
+      return false;
+    } else {
+      const tokenStatus = jwt.verify(JSON.parse(token), process.env.JWTKEY);
+      if (JSON.stringify(tokenStatus.username) === username) {
+        let status = true;
+        return status;
+      } else {
+        return status;
+      }
+    }
+  } catch (error) {
+    throw error;
+  }
+}
+
 app.post("/createPost", async (req, res) => {
   if (req.body.api_pass === process.env.API_PASS) {
     try {
-      const post = await Post.create(req.body);
-      // console.log(game);
-      res.status(200).json({
-        message: "Post created successfully.",
-        post,
-      });
+      const token = req.headers["x-access-token"];
+      const username = req.headers["username"];
+      const authCheck = await verifyJWT(token, username);
+      // console.log("THIS IS AUTHCHECK", authCheck);
+      if (authCheck === false) {
+        res.status(500).json({ auth: false });
+      } else if (authCheck === true) {
+        const post = await Post.create(req.body);
+        res.status(200).json({
+          message: "Post created successfully.",
+          post,
+        });
+      }
     } catch (error) {
       res.status(500).json({ message: error.message });
     }
@@ -64,6 +91,14 @@ app.post("/createPost", async (req, res) => {
 app.post("/addstep", async (req, res) => {
   if (req.body.api_pass === process.env.API_PASS) {
     try {
+      const token = req.headers["x-access-token"];
+      const username = req.headers["username"];
+      const authCheck = await verifyJWT(token, username);
+      // console.log("THIS IS AUTHCHECK", authCheck);
+      if (authCheck === false) {
+        res.status(500).json({ auth: false });
+      }
+
       let new_step = {
         step: req.body.step,
       };
@@ -124,6 +159,8 @@ app.post("/allPublishedGuides", async (req, res) => {
 
 app.post("/getFeaturedGuides", async (req, res) => {
   if (req.body.api_pass === process.env.API_PASS) {
+    // here is authcheck
+
     try {
       const filter = { published: true, approved: true, featured: true };
       const featuredGuides = await Post.find(filter);
@@ -242,18 +279,26 @@ app.post("/getGuidesByAuthor", async (req, res) => {
 app.post("/updateDescription", async (req, res) => {
   if (req.body.api_pass === process.env.API_PASS) {
     try {
-      const { id, description } = req.body;
-      const filter = { _id: id };
-      const update = { description: description };
-      const updatedGuide = await Post.findOneAndUpdate(filter, update, {
-        new: true,
-      });
-      if (!updatedGuide) {
-        res.status(500).json({ message: "/updateDescription failed." });
-      } else {
-        res
-          .status(200)
-          .json({ message: "/updateDescription successful.", updatedGuide });
+      const token = req.headers["x-access-token"];
+      const username = req.headers["username"];
+      const authCheck = await verifyJWT(token, username);
+      console.log("THIS IS AUTHCHECK", authCheck);
+      if (authCheck === false) {
+        res.status(500).json({ auth: false });
+      } else if (authCheck === true) {
+        const { id, description } = req.body;
+        const filter = { _id: id };
+        const update = { description: description };
+        const updatedGuide = await Post.findOneAndUpdate(filter, update, {
+          new: true,
+        });
+        if (!updatedGuide) {
+          res.status(500).json({ message: "/updateDescription failed." });
+        } else {
+          res
+            .status(200)
+            .json({ message: "/updateDescription successful.", updatedGuide });
+        }
       }
     } catch (error) {
       res.status(500).json({ message: "/updateDescription failed." });
@@ -264,6 +309,14 @@ app.post("/updateDescription", async (req, res) => {
 app.post("/updateStep", async (req, res) => {
   if (req.body.api_pass === process.env.API_PASS) {
     try {
+      const token = req.headers["x-access-token"];
+      const username = req.headers["username"];
+      const authCheck = await verifyJWT(token, username);
+      // console.log("THIS IS AUTHCHECK", authCheck);
+      if (authCheck === false) {
+        res.status(500).json({ auth: false });
+      }
+
       const { id, index, newStepData } = req.body;
       let filter = { _id: id };
       let update = {};
@@ -289,19 +342,27 @@ app.post("/updateStep", async (req, res) => {
 app.post("/deleteStep", async (req, res) => {
   if (req.body.api_pass === process.env.API_PASS) {
     try {
-      const { _id, index } = req.body;
-      let filter = { _id: _id };
-      let update = {};
-      let editedStep = "steps." + index + ".step";
-      update[editedStep] = null;
-      const updatedStep = await Post.findOneAndUpdate(filter, update, {
-        new: true,
-      });
-      // console.log("updated STEP:",updatedStep.steps)
+      const token = req.headers["x-access-token"];
+      const username = req.headers["username"];
+      const authCheck = await verifyJWT(token, username);
+      // console.log("THIS IS AUTHCHECK", authCheck);
+      if (authCheck === false) {
+        res.status(500).json({ auth: false });
+      } else if (authCheck === true) {
+        const { _id, index } = req.body;
+        let filter = { _id: _id };
+        let update = {};
+        let editedStep = "steps." + index + ".step";
+        update[editedStep] = null;
+        const updatedStep = await Post.findOneAndUpdate(filter, update, {
+          new: true,
+        });
+        // console.log("updated STEP:",updatedStep.steps)
 
-      // const deleted_null_steps = await Post.update(filter, {$pullAll: {steps: {step: null}}})
-      // console.log("deleted null steps: ",deleted_null_steps)
-      res.status(200).json({ message: "step deleted.", updatedStep });
+        // const deleted_null_steps = await Post.update(filter, {$pullAll: {steps: {step: null}}})
+        // console.log("deleted null steps: ",deleted_null_steps)
+        res.status(200).json({ message: "step deleted.", updatedStep });
+      }
     } catch (error) {
       res.status(500).json({ message: "/deleteStep request has failed" });
     }
@@ -311,18 +372,26 @@ app.post("/deleteStep", async (req, res) => {
 app.post(`${process.env.REMOVE_GUIDE_ENDPOINT}`, async (req, res) => {
   if (req.body.api_pass === process.env.API_PASS) {
     try {
-      const filter = { _id: req.body._id };
-      const deleted_guide = await Post.findOneAndDelete(filter, {
-        new: true,
-      });
-      console.log(deleted_guide);
-      res.status(200).json({ message: "guide successfully deleted." });
+      const token = req.headers["x-access-token"];
+      const username = req.headers["username"];
+      const authCheck = await verifyJWT(token, username);
+      // console.log("THIS IS AUTHCHECK", authCheck);
+      if (authCheck === false) {
+        res.status(500).json({ auth: false });
+      } else if (authCheck === true) {
+        const filter = { _id: req.body._id };
+        const deleted_guide = await Post.findOneAndDelete(filter, {
+          new: true,
+        });
+        console.log(deleted_guide);
+        res.status(200).json({ message: "guide successfully deleted." });
+      }
     } catch (error) {
       res.status(500).json({ message: "failed deleting guide" });
     }
   }
 });
-
+// need to find an efficent way to not do exact searches fr
 app.post("/getGuidesBySearch", async (req, res) => {
   if (req.body.api_pass === process.env.API_PASS) {
     try {
@@ -373,7 +442,6 @@ app.post("/getGuidesBySearch", async (req, res) => {
       //   allFoundGuides.push(emptySearch);
       // }
 
-      console.log("here are found guides", allFoundGuides);
       if (allFoundGuides) {
         res.status(200).json({ allFoundGuides });
       } else {
@@ -461,19 +529,36 @@ app.post("/Register", async (req, res) => {
       // console.log("this is usercheck", user_check)
       if (!user_check) {
         const user = await User.create(req.body);
-        // console.log("this is raw user", user);
-        const token = jwt.sign({ username: user.username }, JWT_SECRET, {
-          expiresIn: "1w",
-        });
-        res
-          .status(200)
-          .json({ message: "Account creation successful.", user, token });
+        res.status(200).json({ message: "Account creation successful.", user });
       } else {
         res.status(200).json({ message: "Username Taken", fail });
       }
     } catch (error) {
       res.status(200).json({ message: error.message, fail });
     }
+  }
+});
+
+app.get("/userauth", async (req, res) => {
+  try {
+    const token = req.headers["x-access-token"];
+    const username = req.headers["username"];
+    // console.log("this is headers: ",req.headers)
+    // console.log("this is username: ", username)
+    // console.log(token);
+    if (!token) {
+      res.status(500).json({ auth: false });
+    } else {
+      const tokenStatus = jwt.verify(JSON.parse(token), process.env.JWTKEY);
+      // console.log("this is token status: ",tokenStatus.username)
+      if (tokenStatus.username === username) {
+        res.status(200).json({ auth: true });
+      } else {
+        res.status(500).json({ auth: false });
+      }
+    }
+  } catch (error) {
+    res.status(500).json({ auth: false });
   }
 });
 
@@ -484,7 +569,6 @@ app.post("/Login", async (req, res) => {
     try {
       let fail = "fail";
       const { username, password } = req.body;
-      // console.log("username: ", username, "password: ", password);
       if (!username || !password) {
         res
           .status(500)
@@ -492,14 +576,23 @@ app.post("/Login", async (req, res) => {
       } else {
         const user = await User.findOne({ username, password });
         if (user) {
-          const token = jwt.sign({ username: user.username }, JWT_SECRET, {
-            expiresIn: "3w",
-          });
-          res.status(200).json({ message: "Login successful", user, token });
-        } else {
+          const token = jwt.sign(
+            { username: user.username },
+            process.env.JWTKEY,
+            {
+              // expiresIn: "86400", // this is 24hrs
+              expiresIn: "6h",
+            }
+          );
           res
             .status(200)
-            .json({ message: "Username or password was incorrect.", fail });
+            .json({ message: "Login successful", user, token, auth: true });
+        } else {
+          res.status(200).json({
+            message: "Username or password was incorrect.",
+            fail,
+            auth: false,
+          });
         }
       }
     } catch (error) {
@@ -622,7 +715,7 @@ app.post("/getImagesByGuideID", async (req, res) => {
     res.status(500).json({ message: "Failed to get image." });
   }
 });
-
+// mongodb+srv://baseUsers:z1x2c3v@webappwarfare.px8ftut.mongodb.net/
 mongoose
   .connect("mongodb+srv://baseUsers:z1x2c3v@webappwarfare.px8ftut.mongodb.net/")
   .then(() => {
