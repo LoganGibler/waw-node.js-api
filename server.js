@@ -59,6 +59,8 @@ async function verifyJWT(token, username) {
   }
 }
 
+// testing
+
 app.post("/createPost", async (req, res) => {
   if (req.body.api_pass === process.env.API_PASS) {
     try {
