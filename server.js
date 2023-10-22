@@ -4,18 +4,14 @@ const cors = require("cors");
 const morgan = require("morgan");
 const mongoose = require("mongoose");
 const path = require("path");
-// const multer = require("multer");
-// const Grid = require("gridfs-stream");
+
 require("dotenv").config();
 const jwt = require("jsonwebtoken");
 
-// const api_pass = process.env.API_PASS;
-// const uuidv4 = require("uuid").v4;
-// const upload = require("./routes/upload");
 app.enable("trust proxy");
 app.use(morgan("dev"));
 app.use(express.json());
-app.use(cors());
+app.use(cors({ origin : '*'}))
 
 const env = "main";
 
@@ -31,15 +27,12 @@ const User = require("./db/userModel");
 const Post = require("./db/postModel");
 const Feedback = require("./db/feedbackModel");
 
-app.use((_, res, next) => {
-  res.set("Access-Control-Allow-Origin", "*");
-  res.set("Access-Control-Allow-Methods", "PUT,POST,GET,DELETE,OPTIONS");
-  res.set(
-    "Access-Control-Allow-Headers",
-    "Origin, X-Requested-With, Content-Type, Accept"
-  );
-  return next();
-});
+// app.use(function(req, res, next) {
+//   res.header("Access-Control-Allow-Origin", "*");
+//   res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
+//   res.header("Access-Control-Allow-Headers", "x-access-token, Origin, X-Requested-With, Content-Type, Accept");
+//   next();
+// });
 
 app.use(express.static(path.join(__dirname, "build")));
 app.get("/", function (req, res) {
@@ -331,7 +324,7 @@ app.post("/updateStep", async (req, res) => {
       } else {
         res
           .status(200)
-          .json({ message: "/updateStep was successful", updatedStep });
+          .json({ message: "/updateStep was successful"});
       }
     } catch (error) {
       res.status(500).json({ message: "/updateStep failed on DB." });
